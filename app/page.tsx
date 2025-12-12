@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { ArrowUpIcon, ArrowDownIcon, WalletIcon, CreditCardIcon, Sparkles } from "lucide-react"
 import { OverviewChart } from "@/components/dashboard/chart"
+import Link from "next/link"
 
 export default async function Dashboard() {
   const data = await getDashboardData()
@@ -40,13 +41,15 @@ export default async function Dashboard() {
           className="text-[#bd00ff]" // Neon Purple
           description="This month"
         />
-        <SummaryCard
-          title="Total Debt"
-          value={data.totals.debt}
-          icon={CreditCardIcon}
-          className="text-[#ff0099]" // Neon Pink/Red
-          description="Outstanding"
-        />
+        <Link href="/debts">
+          <SummaryCard
+            title="Total Debt"
+            value={data.totals.debt}
+            icon={CreditCardIcon}
+            className="text-[#ff0099]" // Neon Pink/Red
+            description="Outstanding"
+          />
+        </Link>
       </div>
 
       {/* Charts & Recent Grid */}

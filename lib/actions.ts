@@ -260,6 +260,20 @@ export async function updateTransaction(id: string, type: string, formData: Form
     revalidatePath("/history")
 }
 
+// --- Debt Actions ---
+
+export async function getDebts() {
+    try {
+        const debts = await prisma.debt.findMany({
+            orderBy: { createdAt: 'desc' }
+        })
+        return debts
+    } catch (e) {
+        console.error("Debt table error", e)
+        return []
+    }
+}
+
 // --- Subscription Actions ---
 
 export async function getSubscriptions() {
