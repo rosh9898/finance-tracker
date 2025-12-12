@@ -4,64 +4,65 @@
 
 @layer base {
   :root {
-    /* Cyber Glass Theme - Dark Mode Default */
+    /* Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 228 20% 6%;
 
-    /* Background: Deepest Navy/Black */
-    --background: 228 20% 6%;
-    /* Foreground: White/Cyan Tint */
-    --foreground: 180 10% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 228 20% 6%;
 
-    /* Card: Transparent Black */
-    --card: 228 20% 8%;
-    --card-foreground: 180 10% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 20% 6%;
 
-    --popover: 228 20% 8%;
-    --popover-foreground: 180 10% 98%;
+    --primary: 180 100% 35%;
+    /* Darker current for visibility on white */
+    --primary-foreground: 0 0% 100%;
 
-    /* Primary: Neon Cyan */
-    --primary: 180 100% 50%;
-    --primary-foreground: 228 20% 6%;
-
-    /* Secondary: Neon Purple */
     --secondary: 270 100% 60%;
-    --secondary-foreground: 180 10% 98%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Muted: Dark Blue-Grey */
-    --muted: 228 20% 15%;
-    --muted-foreground: 228 10% 60%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
 
-    /* Accent: Cyan Tint */
-    --accent: 180 100% 50%;
-    --accent-foreground: 228 20% 6%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
 
-    --destructive: 0 100% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 228 20% 15%;
-    --input: 228 20% 15%;
-    --ring: 180 100% 50%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 180 100% 35%;
 
     --radius: 1rem;
   }
 
   .dark {
-    /* Same as root because this design is inherently dark mode */
+    /* Cyber Glass Theme - Dark Mode */
     --background: 228 20% 6%;
     --foreground: 180 10% 98%;
+
     --card: 228 20% 8%;
     --card-foreground: 180 10% 98%;
+
     --popover: 228 20% 8%;
     --popover-foreground: 180 10% 98%;
+
     --primary: 180 100% 50%;
     --primary-foreground: 228 20% 6%;
+
     --secondary: 270 100% 60%;
     --secondary-foreground: 180 10% 98%;
+
     --muted: 228 20% 15%;
     --muted-foreground: 228 10% 60%;
+
     --accent: 180 100% 50%;
     --accent-foreground: 228 20% 6%;
+
     --destructive: 0 100% 60%;
     --destructive-foreground: 210 40% 98%;
+
     --border: 228 20% 15%;
     --input: 228 20% 15%;
     --ring: 180 100% 50%;
@@ -75,7 +76,10 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    /* Ambient Glow Background */
+  }
+
+  .dark body {
+    /* Ambient Glow Background ONLY for Dark Mode */
     background:
       radial-gradient(circle at 0% 0%, hsl(270 100% 60% / 0.15) 0%, transparent 50%),
       radial-gradient(circle at 100% 0%, hsl(180 100% 50% / 0.1) 0%, transparent 50%),
