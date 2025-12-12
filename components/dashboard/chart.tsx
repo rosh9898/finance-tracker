@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -6,25 +7,27 @@ import {
     LinearScale,
     PointElement,
     LineElement,
+    BarElement,
+    ArcElement,
     Title,
     Tooltip,
     Legend,
     Filler,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { useTheme } from 'next-themes';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
+    BarElement,
+    ArcElement,
     Title,
     Tooltip,
     Legend,
     Filler
 );
-
 
 interface OverviewChartProps {
     data: {
@@ -34,29 +37,24 @@ interface OverviewChartProps {
     }
 }
 
-export function OverviewChart({ data: serverData }: OverviewChartProps) {
-    const { theme } = useTheme();
-
+// 1. Income vs Outcome Bar Chart (Top Right)
+export function IncomeOutcomeChart({ data: serverData }: OverviewChartProps) {
     const chartData = {
         labels: serverData.labels,
         datasets: [
             {
                 label: 'Income',
                 data: serverData.income,
-                backgroundColor: 'rgba(0, 242, 255, 0.2)', // Neon Cyan
-                borderColor: '#00f2ff',
-                borderWidth: 2,
-                tension: 0.4, // Smooth curves like the reference image
-                fill: true,
+                backgroundColor: '#00D09C', // Neon Green
+                borderRadius: 4,
+                barThickness: 8,
             },
             {
-                label: 'Expense',
+                label: 'Outcome',
                 data: serverData.expense,
-                backgroundColor: 'rgba(189, 0, 255, 0.2)', // Neon Purple
-                borderColor: '#bd00ff',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true,
+                backgroundColor: '#E356FA', // Neon Purple
+                borderRadius: 4,
+                barThickness: 8,
             },
         ],
     };
@@ -67,26 +65,74 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
         plugins: {
             legend: {
                 position: 'top' as const,
-                labels: {
-                    color: '#e0fcfd', // Always light text
-                    font: {
-                        family: 'system-ui',
-                        size: 12
-                    }
-                }
+                align: 'end' as const,
+                labels: { color: '#fff', usePointStyle: true, boxWidth: 6, font: { size: 10 } }
             },
-            title: {
-                display: false,
-            },
+            title: { display: false },
         },
         scales: {
             y: {
-                ticks: { color: '#94a3b8' },
-                grid: { color: 'rgba(255,255,255,0.05)' },
-                border: { display: false }
+                display: false,
+                beginAtZero: true
             },
             x: {
-                ticks: { color: '#94a3b8' },
+                ticks: { color: '#64748b', font: { size: 10 } },
+                grid: { display: false },
+                border: { display: false }
+            }
+        }
+    };
+
+    return <Bar options={options} data={chartData} />;
+}
+
+// 2. Expenses Line Graph (Spline) - Middle
+export function OverviewChart({ data: serverData }: OverviewChartProps) {
+    const chartData = {
+        labels: serverData.labels,
+        datasets: [
+            {
+                label: 'Expenses',
+                data: serverData.expense,
+                borderColor: '#E356FA', // Neon Purple
+                backgroundColor: (context: any) => {
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, 'rgba(227, 86, 250, 0.5)');
+                    gradient.addColorStop(1, 'rgba(227, 86, 250, 0)');
+                    return gradient;
+                },
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#fff',
+            }
+        ],
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#fff',
+                titleColor: '#000',
+                bodyColor: '#000',
+                displayColors: false,
+                padding: 10,
+                cornerRadius: 8,
+                callbacks: {
+                    label: (context: any) => `LKR ${context.parsed.y.toLocaleString()}`
+                }
+            }
+        },
+        scales: {
+            y: { display: false },
+            x: {
+                ticks: { color: '#64748b' },
                 grid: { display: false },
                 border: { display: false }
             }
@@ -94,5 +140,34 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
     };
 
     return <Line options={options} data={chartData} />;
+}
 
+// 3. Utility Donut Chart
+export function UtilityDonutChart() {
+    // Mock data for breakdown
+    const data = {
+        labels: ['Utility', 'Entertainment', 'Groceries'],
+        datasets: [
+            {
+                data: [1200, 800, 2000],
+                backgroundColor: [
+                    '#3b82f6', // Blue (Utility)
+                    '#a855f7', // Purple (Entertainment)
+                    '#10b981', // Green (Groceries)
+                ],
+                borderWidth: 0,
+                cutout: '75%',
+            },
+        ],
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+        }
+    };
+
+    return <Doughnut data={data} options={options} />;
 }

@@ -78,7 +78,7 @@ export function Navigation() {
             </nav>
 
             {/* Desktop Sidebar Navigation */}
-            <nav className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-64 border-r bg-background/95 backdrop-blur z-50 p-4">
+            <nav className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-64 border-r border-[#1e2330] bg-[#13151D] z-50 p-6">
                 <div className="flex items-center gap-2 mb-8 px-2">
                     <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
                         <span className="text-primary-foreground font-bold">FT</span>
@@ -95,17 +95,17 @@ export function Navigation() {
                                 key={link.href}
                                 href={link.href}
                             >
-                                <Button
-                                    variant={isActive ? "secondary" : "ghost"}
+                                <div
                                     className={cn(
-                                        "w-full justify-start gap-3",
-                                        isActive && "bg-secondary font-semibold",
-                                        link.color
+                                        "flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-200",
+                                        isActive
+                                            ? "bg-[#E356FA]/10 text-[#E356FA] font-semibold"
+                                            : "text-gray-400 hover:text-white hover:bg-white/5"
                                     )}
                                 >
-                                    <Icon className="h-5 w-5" />
+                                    <Icon className={cn("h-5 w-5", isActive && "drop-shadow-[0_0_8px_rgba(227,86,250,0.5)]")} />
                                     {link.label}
-                                </Button>
+                                </div>
                             </Link>
                         )
                     })}
