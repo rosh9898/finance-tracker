@@ -40,34 +40,39 @@
   }
 
   .dark {
-    /* Cyber Glass Theme - Dark Mode */
-    --background: 228 20% 6%;
-    --foreground: 180 10% 98%;
+    /* Casflow Theme - Deep Navy */
+    --background: 224 35% 10%;
+    /* #111422 Deep Navy */
+    --foreground: 210 40% 98%;
 
-    --card: 228 20% 8%;
-    --card-foreground: 180 10% 98%;
+    --card: 224 30% 13%;
+    /* #171c2b Lighter Navy */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 228 20% 8%;
-    --popover-foreground: 180 10% 98%;
+    --popover: 224 30% 13%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 180 100% 50%;
-    --primary-foreground: 228 20% 6%;
+    --primary: 150 100% 50%;
+    /* #00ff88 Neon Green (Income) */
+    --primary-foreground: 224 35% 10%;
 
-    --secondary: 270 100% 60%;
-    --secondary-foreground: 180 10% 98%;
+    --secondary: 270 95% 65%;
+    /* #a855f7 Neon Purple (Outcome/Active) */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 228 20% 15%;
-    --muted-foreground: 228 10% 60%;
+    --muted: 224 25% 20%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 180 100% 50%;
-    --accent-foreground: 228 20% 6%;
+    --accent: 270 95% 65%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 100% 60%;
+    --destructive: 330 85% 60%;
+    /* Hot Pink */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 228 20% 15%;
-    --input: 228 20% 15%;
-    --ring: 180 100% 50%;
+    --border: 224 25% 20%;
+    --input: 224 25% 20%;
+    --ring: 270 95% 65%;
   }
 }
 
