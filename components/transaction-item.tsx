@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { Trash2, Edit2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { deleteTransaction } from "@/lib/actions"
 import { toast } from "sonner"
 import { useTransition } from "react"
@@ -52,32 +53,37 @@ export function TransactionItem({ transaction: t }: TransactionItemProps) {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <div className={`text-lg font-bold ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'} mr-2`}>
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className={cn(
+                        "text-base md:text-lg font-bold whitespace-nowrap ml-2",
+                        t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
+                    )}>
                         {t.type === 'INCOME' ? '+' : '-'} {formatCurrency(t.amount)}
                     </div>
 
-                    <Link href={`/edit/${t.type.toLowerCase()}/${t.id}`}>
+                    <div className="flex items-center">
+                        <Link href={`/edit/${t.type.toLowerCase()}/${t.id}`}>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                <span className="sr-only">Edit</span>
+                            </Button>
+                        </Link>
+
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+                            onClick={handleDelete}
+                            disabled={isPending}
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
-                            <Edit2 className="w-4 h-4" />
-                            <span className="sr-only">Edit</span>
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span className="sr-only">Delete</span>
                         </Button>
-                    </Link>
-
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleDelete}
-                        disabled={isPending}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="sr-only">Delete</span>
-                    </Button>
+                    </div>
                 </div>
             </CardContent>
         </Card>
