@@ -20,19 +20,12 @@ export default async function Dashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <SummaryCard
           title="Total Balance"
           value={data.totals.balance}
           icon={WalletIcon}
           description="Net available funds"
-        />
-        <SummaryCard
-          title="Total Income"
-          value={data.totals.income}
-          icon={ArrowUpIcon}
-          className="text-[#00f2ff]" // Neon Cyan
-          description="This month"
         />
         <SummaryCard
           title="Total Expense"

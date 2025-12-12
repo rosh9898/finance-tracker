@@ -1,13 +1,23 @@
-import { getHistory } from "@/lib/actions"
+import { getHistory, getDashboardData } from "@/lib/actions"
 import { TransactionItem } from "@/components/transaction-item"
-import { Inbox } from "lucide-react"
+import { Inbox, ArrowUp } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { formatCurrency } from "@/lib/utils"
 
 export default async function HistoryPage() {
     const transactions = await getHistory()
+    const { totals } = await getDashboardData()
 
     return (
         <div className="space-y-6 pt-6">
-            <h1 className="text-3xl font-bold tracking-tight">Transaction History</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold tracking-tight">History</h1>
+                {/* Total Income moved here */}
+                <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Total Earned</p>
+                    <p className="text-lg font-bold text-[#00f2ff]">{formatCurrency(totals.income)}</p>
+                </div>
+            </div>
 
             <div className="space-y-4">
                 {transactions.map((t) => (
