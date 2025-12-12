@@ -1,14 +1,14 @@
 import { Suspense } from "react"
-import { getDashboardData, generateInsights } from "@/lib/actions"
+import { getDashboardData } from "@/lib/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { ArrowUpIcon, ArrowDownIcon, WalletIcon, CreditCardIcon, Sparkles } from "lucide-react"
+import { ArrowUpIcon, ArrowDownIcon, WalletIcon, CreditCardIcon } from "lucide-react"
 import { OverviewChart } from "@/components/dashboard/chart"
 import Link from "next/link"
+import { AiInsights, AiInsightsSkeleton } from "@/components/dashboard/ai-insights"
 
 export default async function Dashboard() {
   const data = await getDashboardData()
-  const insights = await generateInsights()
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -75,25 +75,10 @@ export default async function Dashboard() {
         </Card>
       </div>
 
-      {/* AI Insights */}
-      <Card className="glass-card relative overflow-hidden border-l-4 border-l-primary/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50" />
-        <CardHeader className="pb-2 flex flex-row items-center gap-3 relative z-10">
-          <div className="p-2.5 rounded-xl bg-primary/20 text-primary shadow-inner ring-1 ring-primary/20 backdrop-blur-md">
-            <Sparkles className="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <CardTitle className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
-              AI Insights
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="relative z-10 pt-2">
-          <div className="text-sm text-foreground/90 whitespace-pre-line leading-relaxed font-medium">
-            {insights}
-          </div>
-        </CardContent>
-      </Card>
+      {/* AI Insights (Streamed) */}
+      <Suspense fallback={<AiInsightsSkeleton />}>
+        <AiInsights />
+      </Suspense>
     </div>
   )
 }
@@ -104,9 +89,6 @@ function SummaryCard({ title, value, icon: Icon, className, description }: any) 
   if (className?.includes('#00f2ff')) glowColor = 'bg-[#00f2ff]';
   if (className?.includes('#bd00ff')) glowColor = 'bg-[#bd00ff]';
   if (className?.includes('#ff0099')) glowColor = 'bg-[#ff0099]';
-
-  // For the icon background tint, we need to handle hex carefully or just use a generic white tint
-  // The original used replace which works for tailwind classes. For hex, let's use a generic glass background.
 
   return (
     <Card className="glass-card border-none ring-1 ring-white/5 relative overflow-hidden group">
@@ -139,7 +121,7 @@ function RecentTransactions({ transactions }: { transactions: any[] }) {
             <span className="font-medium group-hover:text-primary transition-colors">{t.category}</span>
             <span className="text-xs text-muted-foreground">{new Date(t.timestamp).toLocaleDateString()}</span>
           </div>
-          <div className={`font-bold ${t.type === 'income' ? 'text-[#00f2ff]' : 'text-[#ff0099]'}`}>
+          <div className={`text-base font-bold ${t.type === 'income' ? 'text-[#00f2ff]' : 'text-[#ff0099]'}`}>
             {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
           </div>
         </div>
