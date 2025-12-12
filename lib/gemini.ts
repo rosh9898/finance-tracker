@@ -149,6 +149,7 @@ export async function getFinancialInsights(summary: string) {
     ${summary}
     
     Provide 3 brief, actionable, bullet-pointed insights or tips. Focus on saving, debt reduction, or spending trends. Keep it friendly and professional.
+    IMPORTANT: The currency is Sri Lankan Rupees (LKR). Always display amounts as "LKR 500" or similar, do NOT use "$".
   `;
 
     try {
