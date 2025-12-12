@@ -121,15 +121,6 @@ export function Navigation() {
                 </div>
             </nav>
 
-            {/* Spacer for desktop sidebar */}
-            <div className="hidden md:block w-64 flex-shrink-0" />
-            {/* Wait, the layout wrapper handles the content area, I should adjust layout.tsx or handle margin here. 
-         My layout.tsx has "max-w-7xl mx-auto". If I put sidebar fixed, I need to push content. 
-         Actually, I put Navigation *after* main in layout.tsx? 
-         Only for mobile bottom bar that works. 
-         For desktop sidebar, it needs to be alongside.
-         I'll adjust layout.tsx later or use 'md:pl-64' on main.
-      */}
         </>
     )
 }

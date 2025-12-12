@@ -153,7 +153,6 @@ export async function getFinancialInsights(summary: string) {
   `;
 
     try {
-        console.log("Fetching new insights from Gemini...");
         const result = await model.generateContent(prompt);
         const text = result.response.text();
 
