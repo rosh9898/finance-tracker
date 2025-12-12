@@ -13,32 +13,38 @@ export function Navigation() {
         {
             href: "/",
             label: "Dashboard",
+            mobileLabel: "Home",
             icon: LayoutDashboard,
         },
         {
             href: "/add",
             label: "Add Entry",
+            mobileLabel: "Add",
             icon: PlusCircle,
         },
         {
             href: "/smart-add",
             label: "Smart Add",
+            mobileLabel: "AI Add",
             icon: Sparkles,
             color: "text-primary", // Special color for Smart Add
         },
         {
             href: "/history",
             label: "History",
+            mobileLabel: "History",
             icon: History,
         },
         {
             href: "/subscriptions",
             label: "Subscriptions",
+            mobileLabel: "Subs",
             icon: Calendar,
         },
         {
             href: "/goals",
             label: "Goals",
+            mobileLabel: "Goals",
             icon: Target,
         },
     ]
@@ -47,7 +53,7 @@ export function Navigation() {
         <>
             {/* Mobile Bottom Navigation */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 pb-safe">
-                <div className="flex justify-around items-center h-16">
+                <div className="flex justify-around items-center h-16 px-1">
                     {links.map((link) => {
                         const Icon = link.icon
                         const isActive = pathname === link.href
@@ -56,15 +62,15 @@ export function Navigation() {
                                 key={link.href}
                                 href={link.href}
                                 className={cn(
-                                    "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors",
+                                    "flex flex-col items-center justify-center w-full h-full min-w-[50px] transition-colors",
                                     isActive
                                         ? "text-primary"
                                         : "text-muted-foreground hover:text-foreground",
                                     link.color && !isActive && link.color
                                 )}
                             >
-                                <Icon className={cn("h-6 w-6", isActive && "animate-pulse")} />
-                                <span className="text-xs font-medium">{link.label}</span>
+                                <Icon className={cn("h-5 w-5 mb-0.5", isActive && "animate-pulse")} />
+                                <span className="text-[10px] font-medium leading-none">{link.mobileLabel}</span>
                             </Link>
                         )
                     })}
