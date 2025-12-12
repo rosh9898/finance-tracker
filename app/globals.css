@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Cyber Glass Theme - Dark Mode Default */
+
+    /* Background: Deepest Navy/Black */
+    --background: 228 20% 6%;
+    /* Foreground: White/Cyan Tint */
+    --foreground: 180 10% 98%;
+
+    /* Card: Transparent Black */
+    --card: 228 20% 8%;
+    --card-foreground: 180 10% 98%;
+
+    --popover: 228 20% 8%;
+    --popover-foreground: 180 10% 98%;
+
+    /* Primary: Neon Cyan */
+    --primary: 180 100% 50%;
+    --primary-foreground: 228 20% 6%;
+
+    /* Secondary: Neon Purple */
+    --secondary: 270 100% 60%;
+    --secondary-foreground: 180 10% 98%;
+
+    /* Muted: Dark Blue-Grey */
+    --muted: 228 20% 15%;
+    --muted-foreground: 228 10% 60%;
+
+    /* Accent: Cyan Tint */
+    --accent: 180 100% 50%;
+    --accent-foreground: 228 20% 6%;
+
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 228 20% 15%;
+    --input: 228 20% 15%;
+    --ring: 180 100% 50%;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    /* Same as root because this design is inherently dark mode */
+    --background: 228 20% 6%;
+    --foreground: 180 10% 98%;
+    --card: 228 20% 8%;
+    --card-foreground: 180 10% 98%;
+    --popover: 228 20% 8%;
+    --popover-foreground: 180 10% 98%;
+    --primary: 180 100% 50%;
+    --primary-foreground: 228 20% 6%;
+    --secondary: 270 100% 60%;
+    --secondary-foreground: 180 10% 98%;
+    --muted: 228 20% 15%;
+    --muted-foreground: 228 10% 60%;
+    --accent: 180 100% 50%;
+    --accent-foreground: 228 20% 6%;
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 228 20% 15%;
+    --input: 228 20% 15%;
+    --ring: 180 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    /* Ambient Glow Background */
+    background:
+      radial-gradient(circle at 0% 0%, hsl(270 100% 60% / 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 100% 0%, hsl(180 100% 50% / 0.1) 0%, transparent 50%),
+      hsl(228 20% 6%);
+    background-attachment: fixed;
+  }
+}
+
+/* Advanced Glassmorphism Utilities */
+.glass {
+  @apply bg-white/5 backdrop-blur-xl border-white/10 shadow-lg;
+}
+
+.glass-card {
+  @apply bg-[#0f1420]/60 backdrop-blur-2xl border border-white/5 shadow-xl transition-all duration-300 hover:shadow-cyan-500/10 hover:border-cyan-500/20 hover:scale-[1.01] rounded-2xl;
+}
+
+/* Neon Text Utilities */
+.text-glow {
+  text-shadow: 0 0 20px hsl(var(--primary) / 0.5);
+}
