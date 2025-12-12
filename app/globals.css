@@ -2,95 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    /* Casflow Theme - Deep Navy (Default for ALL modes) */
-    --background: 224 35% 10%;
-    /* #111422 Deep Navy */
-    --foreground: 210 40% 98%;
-
-    --card: 224 30% 13%;
-    /* #171c2b Lighter Navy */
-    --card-foreground: 210 40% 98%;
-
-    --popover: 224 30% 13%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 150 100% 50%;
-    /* #00ff88 Neon Green (Income) */
-    --primary-foreground: 224 35% 10%;
-
-    --secondary: 270 95% 65%;
-    /* #a855f7 Neon Purple (Outcome/Active) */
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 224 25% 20%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 270 95% 65%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 330 85% 60%;
-    /* Hot Pink */
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 224 25% 20%;
-    --input: 224 25% 20%;
-    --ring: 270 95% 65%;
-
-    --radius: 1rem;
-  }
-
-  .dark {
-    /* Same as root */
-    --background: 224 35% 10%;
-    --foreground: 210 40% 98%;
-    --card: 224 30% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 224 30% 13%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 150 100% 50%;
-    --primary-foreground: 224 35% 10%;
-    --secondary: 270 95% 65%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 224 25% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 270 95% 65%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 330 85% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 224 25% 20%;
-    --input: 224 25% 20%;
-    --ring: 270 95% 65%;
-  }
+:root {
+  --background: #13151D;
+  --foreground: #ffffff;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased;
-    /* Ambient Glow Background - Always On */
-    background:
-      radial-gradient(circle at 10% 10%, hsl(270 100% 60% / 0.12) 0%, transparent 40%),
-      radial-gradient(circle at 90% 90%, hsl(150 100% 50% / 0.08) 0%, transparent 40%),
-      hsl(224 35% 10%);
-    background-attachment: fixed;
-  }
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-poppins), sans-serif;
+  overflow-x: hidden;
 }
 
-/* Glassmorphism Utilities */
-.glass {
-  @apply bg-white/5 backdrop-blur-xl border-white/5 shadow-lg;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.glass-card {
-  @apply bg-[#171c2b]/80 backdrop-blur-2xl border border-white/5 shadow-xl rounded-2xl;
+::-webkit-scrollbar-track {
+  background: #13151D;
 }
 
-/* Neon Text Utilities */
-.text-glow {
-  text-shadow: 0 0 20px hsl(var(--primary) / 0.5);
+::-webkit-scrollbar-thumb {
+  background: #2D3047;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E356FA;
 }
