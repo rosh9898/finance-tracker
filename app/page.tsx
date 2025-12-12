@@ -18,26 +18,6 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* AI Insights */}
-      <Card className="glass-card relative overflow-hidden border-l-4 border-l-primary/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50" />
-        <CardHeader className="pb-2 flex flex-row items-center gap-3 relative z-10">
-          <div className="p-2.5 rounded-xl bg-primary/20 text-primary shadow-inner ring-1 ring-primary/20 backdrop-blur-md">
-            <Sparkles className="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <CardTitle className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
-              AI Insights
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="relative z-10 pt-2">
-          <div className="text-sm text-foreground/90 whitespace-pre-line leading-relaxed font-medium">
-            {insights}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
@@ -91,6 +71,26 @@ export default async function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Insights */}
+      <Card className="glass-card relative overflow-hidden border-l-4 border-l-primary/50">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50" />
+        <CardHeader className="pb-2 flex flex-row items-center gap-3 relative z-10">
+          <div className="p-2.5 rounded-xl bg-primary/20 text-primary shadow-inner ring-1 ring-primary/20 backdrop-blur-md">
+            <Sparkles className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <CardTitle className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
+              AI Insights
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="relative z-10 pt-2">
+          <div className="text-sm text-foreground/90 whitespace-pre-line leading-relaxed font-medium">
+            {insights}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
