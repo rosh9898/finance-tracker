@@ -1,5 +1,21 @@
 "use client"
 
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
+
+// Lazy load chart components for better initial bundle size
+const Line = dynamic(
+    () => import('react-chartjs-2').then((mod) => mod.Line),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full h-full flex items-center justify-center">
+                <Skeleton className="w-full h-full rounded-lg" />
+            </div>
+        ),
+    }
+)
+
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -11,9 +27,10 @@ import {
     Legend,
     Filler,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
 import { useTheme } from 'next-themes';
+import { memo, useMemo } from 'react';
 
+// Register chart.js components once
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -34,21 +51,26 @@ interface OverviewChartProps {
     }
 }
 
-export function OverviewChart({ data: serverData }: OverviewChartProps) {
+function OverviewChartComponent({ data: serverData }: OverviewChartProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
-    const textColor = isDark ? '#94a3b8' : '#475569';
-    const gridColor = isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)';
 
-    const chartData = {
+    // Memoize colors to prevent recalculation
+    const { textColor, gridColor } = useMemo(() => ({
+        textColor: isDark ? '#94a3b8' : '#475569',
+        gridColor: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.5)',
+    }), [isDark]);
+
+    // Memoize chart data
+    const chartData = useMemo(() => ({
         labels: serverData.labels,
         datasets: [
             {
-                label: '  Balance', // Added spaces for legend spacing
+                label: '  Balance',
                 data: serverData.balance,
-                borderColor: '#6366F1', // Indigo-500
-                backgroundColor: 'rgba(99, 102, 241, 0.1)', // Subtle fill
-                tension: 0.4, // Smooth curve
+                borderColor: '#6366F1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
                 pointRadius: 0,
                 pointHoverRadius: 6,
                 pointBackgroundColor: '#6366F1',
@@ -60,9 +82,9 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
             {
                 label: '  Expenses',
                 data: serverData.expense,
-                borderColor: '#D946EF', // Neon Magenta (Fuchsia-500)
-                backgroundColor: 'rgba(217, 70, 239, 0.1)', // Subtle fill
-                tension: 0.4, // Smooth curve
+                borderColor: '#D946EF',
+                backgroundColor: 'rgba(217, 70, 239, 0.1)',
+                tension: 0.4,
                 pointRadius: 0,
                 pointHoverRadius: 6,
                 pointBackgroundColor: '#D946EF',
@@ -74,9 +96,9 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
             {
                 label: '  Debt',
                 data: serverData.debt,
-                borderColor: '#F59E0B', // Neon Amber (Amber-500)
-                backgroundColor: 'rgba(245, 158, 11, 0.1)', // Subtle fill
-                tension: 0.4, // Smooth curve
+                borderColor: '#F59E0B',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                tension: 0.4,
                 pointRadius: 0,
                 pointHoverRadius: 6,
                 pointBackgroundColor: '#F59E0B',
@@ -86,9 +108,10 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
                 borderWidth: 2,
             },
         ],
-    };
+    }), [serverData]);
 
-    const options = {
+    // Memoize options
+    const options = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -96,11 +119,11 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
                 position: 'top' as const,
                 align: 'end' as const,
                 labels: {
-                    color: textColor, // Adaptive
+                    color: textColor,
                     usePointStyle: true,
                     pointStyle: 'circle',
                     boxWidth: 8,
-                    padding: 30, // Increased spacing between items
+                    padding: 30,
                     font: {
                         family: 'Inter, sans-serif',
                         size: 12,
@@ -123,7 +146,7 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
                 callbacks: {
                     label: function (context: any) {
                         let label = context.dataset.label || '';
-                        label = label.trim(); // Remove the spacing for the tooltip
+                        label = label.trim();
                         if (label) {
                             label += ': ';
                         }
@@ -156,7 +179,7 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
                 ticks: {
                     color: textColor,
                     font: { size: 10, family: 'Inter, sans-serif' },
-                    maxTicksLimit: 10, // Avoid cluttering day labels
+                    maxTicksLimit: 10,
                 },
                 grid: { display: false }
             }
@@ -165,13 +188,12 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
             mode: 'index' as const,
             intersect: false,
         },
-    };
+    }), [textColor, gridColor, isDark]);
 
     return (
         <div className="w-full h-full flex flex-col">
             <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-medium text-muted-foreground">Daily Cash Flow</h3>
-
             </div>
             <div className="flex-1 min-h-0">
                 {/* @ts-ignore */}
@@ -180,3 +202,6 @@ export function OverviewChart({ data: serverData }: OverviewChartProps) {
         </div>
     );
 }
+
+// Memoize the entire component
+export const OverviewChart = memo(OverviewChartComponent);

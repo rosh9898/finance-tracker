@@ -1,8 +1,22 @@
 "use client"
 
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Doughnut } from 'react-chartjs-2';
-import { useTheme } from 'next-themes';
+import { memo, useMemo } from 'react';
+
+// Lazy load Doughnut chart
+const Doughnut = dynamic(
+    () => import('react-chartjs-2').then((mod) => mod.Doughnut),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="h-[200px] w-full flex items-center justify-center">
+                <Skeleton className="w-[180px] h-[180px] rounded-full" />
+            </div>
+        ),
+    }
+)
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -13,35 +27,35 @@ interface BreakdownChartProps {
     }[]
 }
 
-export function BreakdownChart({ data }: BreakdownChartProps) {
-    const { theme } = useTheme();
+// Color palette - defined outside component for optimization
+const CHART_COLORS = [
+    '#EC4899', // Pink-500
+    '#10B981', // Emerald-500
+    '#8B5CF6', // Violet-500
+    '#F59E0B', // Amber-500
+    '#3B82F6', // Blue-500
+];
 
-    // Palette for Categories (Neon/Dark theme friendly)
-    const colors = [
-        '#EC4899', // Pink-500
-        '#10B981', // Emerald-500
-        '#8B5CF6', // Violet-500
-        '#F59E0B', // Amber-500
-        '#3B82F6', // Blue-500
-    ];
-
-    const chartData = {
+function BreakdownChartComponent({ data }: BreakdownChartProps) {
+    // Memoize chart data
+    const chartData = useMemo(() => ({
         labels: data.map(d => d.category),
         datasets: [
             {
                 data: data.map(d => d.amount),
-                backgroundColor: colors,
-                borderColor: '#1f2937', // Dark border (matches bg)
+                backgroundColor: CHART_COLORS,
+                borderColor: '#1f2937',
                 borderWidth: 2,
             },
         ],
-    };
+    }), [data]);
 
-    const options = {
+    // Static options - memoized once
+    const options = useMemo(() => ({
         responsive: true,
         plugins: {
             legend: {
-                display: false, // We will build a custom legend
+                display: false,
             },
             tooltip: {
                 backgroundColor: '#1f2937',
@@ -56,8 +70,8 @@ export function BreakdownChart({ data }: BreakdownChartProps) {
                 }
             }
         },
-        cutout: '75%', // Thinner ring
-    };
+        cutout: '75%',
+    }), []);
 
     return (
         <div className="w-full">
@@ -74,7 +88,7 @@ export function BreakdownChart({ data }: BreakdownChartProps) {
                     <div key={item.category} className="flex items-center gap-2">
                         <div
                             className="w-3 h-3 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: colors[index % colors.length] }}
+                            style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                         />
                         <div className="flex flex-col overflow-hidden">
                             <span className="text-xs text-gray-600 dark:text-gray-400 truncate w-full">{item.category}</span>
@@ -86,3 +100,5 @@ export function BreakdownChart({ data }: BreakdownChartProps) {
         </div>
     );
 }
+
+export const BreakdownChart = memo(BreakdownChartComponent);

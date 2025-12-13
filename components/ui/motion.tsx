@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, HTMLMotionProps } from "framer-motion"
+import { motion, HTMLMotionProps, LazyMotion, domAnimation } from "framer-motion"
+import { memo } from "react"
 
 // Brand-aligned spring transition
 const springTransition = {
@@ -8,12 +9,6 @@ const springTransition = {
     stiffness: 100,
     damping: 15,
     mass: 1,
-}
-
-const itemTransition = {
-    type: "spring",
-    stiffness: 50,
-    damping: 15
 }
 
 // Variants
@@ -43,45 +38,56 @@ interface MotionComponentProps extends HTMLMotionProps<"div"> {
     delay?: number
 }
 
-export function MotionDiv({ children, className, delay = 0, ...props }: MotionComponentProps) {
+// Wrap motion components with LazyMotion for smaller bundle
+function MotionDivComponent({ children, className, delay = 0, ...props }: MotionComponentProps) {
     return (
-        <motion.div
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={fadeIn}
-            transition={{ ...springTransition, delay }}
-            className={className}
-            {...props}
-        >
-            {children}
-        </motion.div>
+        <LazyMotion features={domAnimation}>
+            <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={fadeIn}
+                transition={{ ...springTransition, delay }}
+                className={className}
+                {...props}
+            >
+                {children}
+            </motion.div>
+        </LazyMotion>
     )
 }
 
-export function MotionList({ children, className, ...props }: HTMLMotionProps<"div">) {
+function MotionListComponent({ children, className, ...props }: HTMLMotionProps<"div">) {
     return (
-        <motion.div
-            initial="initial"
-            animate="animate"
-            variants={staggerContainer}
-            className={className}
-            {...props}
-        >
-            {children}
-        </motion.div>
+        <LazyMotion features={domAnimation}>
+            <motion.div
+                initial="initial"
+                animate="animate"
+                variants={staggerContainer}
+                className={className}
+                {...props}
+            >
+                {children}
+            </motion.div>
+        </LazyMotion>
     )
 }
 
-export function MotionItem({ children, className, ...props }: HTMLMotionProps<"div">) {
+function MotionItemComponent({ children, className, ...props }: HTMLMotionProps<"div">) {
     return (
-        <motion.div
-            variants={slideUp}
-            className={className}
-            {...props}
-        >
-            {children}
-        </motion.div>
+        <LazyMotion features={domAnimation}>
+            <motion.div
+                variants={slideUp}
+                className={className}
+                {...props}
+            >
+                {children}
+            </motion.div>
+        </LazyMotion>
     )
 }
 
+// Export memoized components
+export const MotionDiv = memo(MotionDivComponent)
+export const MotionList = memo(MotionListComponent)
+export const MotionItem = memo(MotionItemComponent)
