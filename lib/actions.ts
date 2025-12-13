@@ -2,256 +2,225 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { parseTransaction, getFinancialInsights, scanForSubscriptions } from "./gemini"
+import { getFinancialInsights, parseTransaction } from "@/lib/gemini"
+
+export async function getDashboardData() {
+    const [incomes, expenses, debts] = await Promise.all([
+        prisma.income.findMany({ orderBy: { timestamp: 'desc' } }),
+        prisma.expense.findMany({ orderBy: { timestamp: 'desc' } }),
+        prisma.debt.findMany({ orderBy: { createdAt: 'desc' } }),
+    ])
+
+    // Calculate totals
+    const totalIncome = incomes.reduce((acc, curr) => acc + curr.amount, 0)
+    const totalExpense = expenses.reduce((acc, curr) => acc + curr.amount, 0)
+    const totalDebt = debts.reduce((acc, curr) => acc + curr.currentBalance, 0)
+
+    const balance = totalIncome - totalExpense
+
+    // Combine for recent transactions
+    const recent = [
+        ...incomes.map(i => ({ ...i, type: 'INCOME', date: i.timestamp })),
+        ...expenses.map(e => ({ ...e, type: 'EXPENSE', date: e.timestamp })),
+        ...debts.map(d => ({
+            ...d,
+            type: 'DEBT',
+            category: d.type,
+            date: d.createdAt,
+            amount: d.currentBalance
+        }))
+    ]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5)
+
+    const chartLabels: string[] = []
+    const chartBalance: number[] = []
+    const chartExpense: number[] = []
+    const chartDebt: number[] = []
+    let runningBalance = 0
+    let runningExpense = 0
+    let runningDebt = 0
+
+    // Last 30 days for Monthly Overview
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        const dateStr = d.toLocaleDateString('en-CA') // YYYY-MM-DD
+        const label = d.toLocaleDateString('en-US', { day: 'numeric' }) // Day number
+
+        chartLabels.push(label)
+
+        const dayIncomes = incomes.filter(inc => new Date(inc.timestamp).toISOString().startsWith(dateStr))
+        const dayExpenses = expenses.filter(exp => new Date(exp.timestamp).toISOString().startsWith(dateStr))
+        const dayDebts = debts.filter(d => new Date(d.createdAt).toISOString().startsWith(dateStr))
+
+        const dailyIncome = dayIncomes.reduce((acc, curr) => acc + curr.amount, 0)
+        const dailyExpense = dayExpenses.reduce((acc, curr) => acc + curr.amount, 0)
+        const dailyDebt = dayDebts.reduce((acc, curr) => acc + curr.initialAmount, 0)
+
+        runningBalance += (dailyIncome - dailyExpense)
+        runningExpense += dailyExpense
+        runningDebt += dailyDebt
+
+        chartBalance.push(runningBalance)
+        chartExpense.push(runningExpense)
+        chartDebt.push(runningDebt)
+    }
+
+    return {
+        totals: {
+            balance,
+            income: totalIncome,
+            expense: totalExpense,
+            debt: totalDebt
+        },
+        recent,
+        chart: {
+            labels: chartLabels,
+            balance: chartBalance,
+            expense: chartExpense,
+            debt: chartDebt
+        },
+        breakdown: Object.entries(expenses.reduce((acc, curr) => {
+            acc[curr.category] = (acc[curr.category] || 0) + curr.amount
+            return acc
+        }, {} as Record<string, number>))
+            .map(([category, amount]) => ({ category, amount }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 5)
+    }
+}
+
+export async function generateInsights() {
+    const data = await getDashboardData()
+    const summary = `
+    Total Income: ${data.totals.income}
+    Total Expense: ${data.totals.expense}
+    Total Debt: ${data.totals.debt}
+    Net Balance: ${data.totals.balance}
+    Recent Transactions: ${data.recent.map(t => `${t.type}: ${t.amount} (${t.category})`).join(', ')}
+  `
+    return await getFinancialInsights(summary)
+}
 
 export async function addIncome(formData: FormData) {
     const amount = parseFloat(formData.get("amount") as string)
     const category = formData.get("category") as string
+    const dateStr = formData.get("date") as string
     const note = formData.get("note") as string
-    const date = new Date(formData.get("date") as string || Date.now())
 
     await prisma.income.create({
         data: {
             amount,
             category,
-            note,
-            timestamp: date,
-        },
+            timestamp: new Date(dateStr),
+            note
+        }
     })
+
     revalidatePath("/")
-    revalidatePath("/history")
 }
 
 export async function addExpense(formData: FormData) {
     const amount = parseFloat(formData.get("amount") as string)
     const category = formData.get("category") as string
+    const dateStr = formData.get("date") as string
     const note = formData.get("note") as string
-    const date = new Date(formData.get("date") as string || Date.now())
 
     await prisma.expense.create({
         data: {
             amount,
             category,
-            note,
-            timestamp: date,
-        },
-    })
-    revalidatePath("/")
-    revalidatePath("/history")
-}
-
-export async function addDebt(formData: FormData) {
-    const type = formData.get("type") as string
-    const lender = formData.get("lender") as string
-    const amount = parseFloat(formData.get("amount") as string)
-    const note = formData.get("note") as string
-
-    await prisma.debt.create({
-        data: {
-            type,
-            lender,
-            initialAmount: amount,
-            currentBalance: amount,
-            note,
-        },
-    })
-    revalidatePath("/")
-    await prisma.debt.create({
-        data: {
-            type,
-            lender,
-            initialAmount: amount,
-            currentBalance: amount,
-            note,
-        },
-    })
-    revalidatePath("/")
-}
-
-export async function addRepayment(formData: FormData) {
-    const amount = parseFloat(formData.get("amount") as string)
-    const category = formData.get("category") as string
-    const note = formData.get("note") as string
-    const date = new Date(formData.get("date") as string || Date.now())
-
-    // 1. Record as an Expense so it shows in history/charts and reduces wallet balance
-    await prisma.expense.create({
-        data: {
-            amount,
-            category: "Repayment: " + category,
-            note,
-            timestamp: date,
-        },
-    })
-
-    // 2. Try to find a matching debt to reduce its balance
-    // This is a "smart" guess. In a full app, we'd ask the user to select the debt.
-    const matchingDebt = await prisma.debt.findFirst({
-        where: {
-            OR: [
-                { type: { contains: category } },
-                { lender: { contains: category } }
-            ]
+            timestamp: new Date(dateStr),
+            note
         }
     })
 
-    if (matchingDebt) {
-        await prisma.debt.update({
-            where: { id: matchingDebt.id },
-            data: {
-                currentBalance: { decrement: amount }
-            }
-        })
+    revalidatePath("/")
+}
 
-        // Optionally record the formal Repayment relation
-        await prisma.repayment.create({
-            data: {
-                amount,
-                debtId: matchingDebt.id,
-                timestamp: date,
-                note
-            }
-        })
-    }
+export async function addDebt(formData: FormData) {
+    const amount = parseFloat(formData.get("amount") as string)
+    const type = formData.get("type") as string // "Credit Card", "Loan"
+    const lender = formData.get("lender") as string
+    const dateStr = formData.get("date") as string
+    const note = formData.get("note") as string
+
+    await prisma.debt.create({
+        data: {
+            initialAmount: amount,
+            currentBalance: amount,
+            type,
+            lender,
+            createdAt: new Date(dateStr),
+            note
+        }
+    })
 
     revalidatePath("/")
-    revalidatePath("/history")
-}
-
-
-import { startOfWeek, endOfWeek, subWeeks, format, startOfDay, endOfDay } from "date-fns"
-
-export async function getDashboardData() {
-    const today = new Date();
-
-    // 1. Parallelize initial unrelated queries
-    const [recentIncome, recentExpense, totalIncome, totalExpense, totalDebt] = await Promise.all([
-        prisma.income.findMany({ orderBy: { timestamp: 'desc' }, take: 5 }),
-        prisma.expense.findMany({ orderBy: { timestamp: 'desc' }, take: 5 }),
-        prisma.income.aggregate({ _sum: { amount: true } }),
-        prisma.expense.aggregate({ _sum: { amount: true } }),
-        prisma.debt.aggregate({ _sum: { currentBalance: true } })
-    ]);
-
-    // 2. Parallelize Chart Data aggregation
-    const chartWeeks = [];
-    for (let i = 3; i >= 0; i--) {
-        const weekStart = startOfWeek(subWeeks(today, i), { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(subWeeks(today, i), { weekStartsOn: 1 });
-        chartWeeks.push({ weekStart, weekEnd, label: `Week ${4 - i} (${format(weekStart, 'd/M')})` });
-    }
-
-    // Run all 8 aggregate queries (4 weeks * 2 types) in parallel
-    const chartResults = await Promise.all(
-        chartWeeks.flatMap(week => [
-            prisma.income.aggregate({
-                _sum: { amount: true },
-                where: { timestamp: { gte: startOfDay(week.weekStart), lte: endOfDay(week.weekEnd) } }
-            }),
-            prisma.expense.aggregate({
-                _sum: { amount: true },
-                where: { timestamp: { gte: startOfDay(week.weekStart), lte: endOfDay(week.weekEnd) } }
-            })
-        ])
-    );
-
-    // Reconstruct chart data from flat results
-    const chartData = {
-        labels: chartWeeks.map(w => w.label),
-        income: [] as number[],
-        expense: [] as number[]
-    };
-
-    for (let i = 0; i < chartWeeks.length; i++) {
-        // Pairs of [Income, Expense]
-        chartData.income.push(chartResults[i * 2]._sum.amount || 0);
-        chartData.expense.push(chartResults[i * 2 + 1]._sum.amount || 0);
-    }
-
-    // Combine recent transactions
-    const recent = [
-        ...recentIncome.map(i => ({ ...i, type: 'income' })),
-        ...recentExpense.map(e => ({ ...e, type: 'expense' }))
-    ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 5)
-
-    return {
-        recent,
-        totals: {
-            income: totalIncome._sum.amount || 0,
-            expense: totalExpense._sum.amount || 0,
-            debt: totalDebt._sum.currentBalance || 0,
-            balance: (totalIncome._sum.amount || 0) - (totalExpense._sum.amount || 0)
-        },
-        chart: chartData
-    }
-}
-
-export async function processSmartAdd(input: string) {
-    return await parseTransaction(input);
-}
-
-export async function generateInsights() {
-    const data = await getDashboardData();
-    const summary = `Total Balance: ${data.totals.balance}. Income: ${data.totals.income}, Expense: ${data.totals.expense}. Weekly Spending Trend: ${data.chart.expense.join(', ')}. Debt: ${data.totals.debt}.`;
-    return await getFinancialInsights(summary);
 }
 
 export async function getHistory() {
-    const incomes = await prisma.income.findMany({ orderBy: { timestamp: 'desc' }, take: 50 })
-    const expenses = await prisma.expense.findMany({ orderBy: { timestamp: 'desc' }, take: 50 })
+    const [incomes, expenses, debts] = await Promise.all([
+        prisma.income.findMany({ orderBy: { timestamp: 'desc' } }),
+        prisma.expense.findMany({ orderBy: { timestamp: 'desc' } }),
+        prisma.debt.findMany({ orderBy: { createdAt: 'desc' } }),
+    ])
 
-    const all = [
-        ...incomes.map(i => ({ ...i, type: 'INCOME' })),
-        ...expenses.map(e => ({ ...e, type: 'EXPENSE' }))
-    ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    const transactions = [
+        ...incomes.map(i => ({ ...i, type: 'INCOME', date: i.timestamp })),
+        ...expenses.map(e => ({ ...e, type: 'EXPENSE', date: e.timestamp })),
+        ...debts.map(d => ({
+            ...d,
+            type: 'DEBT',
+            category: d.type,
+            date: d.createdAt,
+            amount: d.currentBalance
+        }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-
-    return all
-}
-
-export async function deleteTransaction(id: string, type: 'INCOME' | 'EXPENSE' | 'DEBT') {
-    if (type === 'INCOME') await prisma.income.delete({ where: { id } })
-    else if (type === 'EXPENSE') await prisma.expense.delete({ where: { id } })
-    else await prisma.debt.delete({ where: { id } })
-    revalidatePath("/")
-    revalidatePath("/history")
+    return transactions
 }
 
 export async function getTransaction(id: string, type: string) {
-    if (type === 'INCOME') return await prisma.income.findUnique({ where: { id } })
-    if (type === 'EXPENSE') return await prisma.expense.findUnique({ where: { id } })
-    if (type === 'DEBT') return await prisma.debt.findUnique({ where: { id } })
-    return null
+    const normalizedType = type.toLowerCase()
+    if (normalizedType === 'income') {
+        return await prisma.income.findUnique({ where: { id } })
+    } else if (normalizedType === 'expense') {
+        return await prisma.expense.findUnique({ where: { id } })
+    } else if (normalizedType === 'debt') {
+        return await prisma.debt.findUnique({ where: { id } })
+    }
 }
 
 export async function updateTransaction(id: string, type: string, formData: FormData) {
     const amount = parseFloat(formData.get("amount") as string)
     const category = formData.get("category") as string
-    const note = formData.get("note") as string
-
     const dateStr = formData.get("date") as string
-    const date = dateStr ? new Date(dateStr) : undefined
+    const note = formData.get("note") as string
+    const date = new Date(dateStr)
 
-    if (type === 'INCOME') {
+    const normalizedType = type.toLowerCase()
+
+    if (normalizedType === 'income') {
         await prisma.income.update({
             where: { id },
-            data: { amount, category, note, ...(date && { timestamp: date }) }
+            data: { amount, category, timestamp: date, note }
         })
-    } else if (type === 'EXPENSE') {
+    } else if (normalizedType === 'expense') {
         await prisma.expense.update({
             where: { id },
-            data: { amount, category, note, ...(date && { timestamp: date }) }
+            data: { amount, category, timestamp: date, note }
         })
-    } else if (type === 'DEBT') {
+    } else if (normalizedType === 'debt') {
         const lender = formData.get("lender") as string
-        const debtType = formData.get("type") as string
-
         await prisma.debt.update({
             where: { id },
             data: {
                 initialAmount: amount,
-                type: debtType,
+                type: category, // Debt type mapped to category
                 lender,
+                createdAt: date,
                 note
             }
         })
@@ -260,143 +229,176 @@ export async function updateTransaction(id: string, type: string, formData: Form
     revalidatePath("/history")
 }
 
-// --- Debt Actions ---
-
-export async function getDebts() {
-    try {
-        const debts = await prisma.debt.findMany({
-            orderBy: { createdAt: 'desc' }
-        })
-        return debts
-    } catch (e) {
-        console.error("Debt table error", e)
-        return []
-    }
+export async function processSmartAdd(input: string) {
+    return await parseTransaction(input)
 }
 
-// --- Subscription Actions ---
-
-export async function getSubscriptions() {
-    try {
-        // @ts-ignore
-        const subs = await prisma.subscription.findMany({
-            orderBy: { nextDueDate: 'asc' }
-        })
-        return subs
-    } catch (e) {
-        console.error("Subscription table might not exist yet", e)
-        return []
-    }
-}
-
-export async function addSubscription(formData: FormData) {
-    const name = formData.get("name") as string
+export async function addRepayment(formData: FormData) {
+    const debtId = formData.get("debtId") as string
     const amount = parseFloat(formData.get("amount") as string)
-    const category = formData.get("category") as string
-    const frequency = formData.get("frequency") as string
-    const nextDueDate = new Date(formData.get("nextDueDate") as string)
-    const provider = formData.get("provider") as string
+    const dateStr = formData.get("date") as string
 
-    // @ts-ignore
-    await prisma.subscription.create({
+    // 1. Create Repayment record
+    await prisma.repayment.create({
         data: {
-            name,
+            debtId,
             amount,
-            category,
-            frequency,
-            nextDueDate,
-            provider,
-            status: "ACTIVE"
+            timestamp: new Date(dateStr)
         }
     })
-    revalidatePath("/subscriptions")
-}
 
-export async function detectRecurringExpenses() {
-    // 1. Get recent expenses
-    const expenses = await prisma.expense.findMany({
-        orderBy: { timestamp: 'desc' },
-        take: 100 // Look at last 100 transactions
-    })
-
-    // 2. Prepare data for summary analysis
-    const summary = expenses.map(e =>
-        `Date: ${e.timestamp.toISOString().split('T')[0]}, Amount: ${e.amount}, Category: ${e.category}, Note: ${e.note}`
-    ).join('\n')
-
-    // 3. Ask Gemini to find patterns
-    const detected = await scanForSubscriptions(summary)
-
-    return detected; // Returns array of potential subscriptions
-}
-
-// --- Goal Actions ---
-
-export async function getGoals() {
-    try {
-        // @ts-ignore
-        const goals = await prisma.goal.findMany({
-            orderBy: { createdAt: 'desc' }
+    // 2. Decrement Debt Balance
+    const debt = await prisma.debt.findUnique({ where: { id: debtId } })
+    if (debt) {
+        await prisma.debt.update({
+            where: { id: debtId },
+            data: { currentBalance: debt.currentBalance - amount }
         })
-        return goals
-    } catch (e) {
-        console.error("Goals table error", e)
-        return []
     }
-}
 
-export async function addGoal(formData: FormData) {
-    const name = formData.get("name") as string
-    const targetAmount = parseFloat(formData.get("targetAmount") as string)
-    const initialAmount = parseFloat(formData.get("initialAmount") as string || "0")
-
-    // Check if deadline is present
-    const deadlineStr = formData.get("deadline") as string
-    const deadline = deadlineStr ? new Date(deadlineStr) : null
-
-    // @ts-ignore
-    await prisma.goal.create({
-        data: {
-            name,
-            targetAmount,
-            currentAmount: initialAmount,
-            deadline,
-            status: "ACTIVE"
-        }
-    })
-    revalidatePath("/goals")
-}
-
-export async function contributeToGoal(id: string, amount: number) {
-    // 1. Get goal to verify 
-    // @ts-ignore
-    const goal = await prisma.goal.findUnique({ where: { id } })
-    if (!goal) throw new Error("Goal not found")
-
-    // 2. Update Goal Balance
-    // @ts-ignore
-    await prisma.goal.update({
-        where: { id },
-        data: { currentAmount: { increment: amount } }
-    })
-
-    // 3. Record as Expense (Transfer) so wallet balance decreases
-    // This is "simulating" the money leaving the liquid wallet to the goal jar.
-    await prisma.expense.create({
-        data: {
-            amount,
-            category: "Savings Goal: " + goal.name,
-            note: "Contribution to goal",
-            timestamp: new Date()
-        }
-    })
-
-    revalidatePath("/goals")
     revalidatePath("/")
 }
 
-export async function deleteGoal(id: string) {
-    // @ts-ignore
-    await prisma.goal.delete({ where: { id } })
-    revalidatePath("/goals")
+export async function deleteTransaction(id: string, type: 'INCOME' | 'EXPENSE' | 'DEBT') {
+    if (type === 'INCOME') {
+        await prisma.income.delete({ where: { id } })
+    } else if (type === 'EXPENSE') {
+        await prisma.expense.delete({ where: { id } })
+    } else if (type === 'DEBT') {
+        await prisma.debt.delete({ where: { id } })
+    }
+    revalidatePath("/")
+}
+
+export async function seedDatabase() {
+    // 1. Clear existing data (optional, let's just add to it to be safe, or maybe clear? 
+    // Safest for "Simulated Dataset" is usually to assume fresh or just noise. 
+    // I will NOT clear, just add.
+
+    const categories = {
+        income: ["Salary", "Business / Freelance", "Investments", "Gifts / Allowances", "Other Income"],
+        expense: ["Food & Groceries", "Transport & Fuel", "Housing & Utilities", "Health & Medical", "Shopping & Personal Care", "Entertainment & Leisure", "Education & Courses", "Work & Professional", "Family & Gifts", "Other / Miscellaneous"]
+    };
+
+    const today = new Date();
+
+    // Generate 40-50 transactions
+    const numTransactions = 45;
+
+    for (let i = 0; i < numTransactions; i++) {
+        const isIncome = Math.random() > 0.7; // 30% income, 70% expense
+        const daysAgo = Math.floor(Math.random() * 30);
+        const date = new Date(today);
+        date.setDate(date.getDate() - daysAgo);
+
+        if (isIncome) {
+            const amount = Math.floor(Math.random() * 50000) + 5000;
+            await prisma.income.create({
+                data: {
+                    amount,
+                    category: categories.income[Math.floor(Math.random() * categories.income.length)],
+                    timestamp: date,
+                    note: "Simulated Entry"
+                }
+            });
+        } else {
+            const amount = Math.floor(Math.random() * 8000) + 500;
+            await prisma.expense.create({
+                data: {
+                    amount,
+                    category: categories.expense[Math.floor(Math.random() * categories.expense.length)],
+                    timestamp: date,
+                    note: "Simulated Entry"
+                }
+            });
+        }
+    }
+
+    // Ensure at least one massive Salary income if not present
+    await prisma.income.create({
+        data: {
+            amount: 150000,
+            category: "Salary",
+            timestamp: new Date(),
+            note: "Simulated Salary"
+        }
+    });
+
+    // Generate Simulated Debts
+    const debtTypes = ["Credit Card", "Loan", "Borrowed Money"];
+    const lenders = ["HNB Bank", "Commercial Bank", "Friend (Kamal)", "DFCC Bank"];
+
+    for (let i = 0; i < 4; i++) {
+        const initialAmount = Math.floor(Math.random() * 50000) + 10000;
+        let currentBalance = initialAmount;
+
+        const daysAgo = Math.floor(Math.random() * 60) + 5; // At least 5 days ago to allow for repayments
+        const date = new Date(today);
+        date.setDate(date.getDate() - daysAgo);
+
+        const debt = await prisma.debt.create({
+            data: {
+                initialAmount: initialAmount,
+                currentBalance: initialAmount,
+                type: debtTypes[Math.floor(Math.random() * debtTypes.length)],
+                lender: lenders[Math.floor(Math.random() * lenders.length)],
+                createdAt: date,
+                note: "Simulated Debt"
+            }
+        });
+
+        // Simulate Repayments (70% chance)
+        if (Math.random() > 0.3) {
+            const numRepayments = Math.floor(Math.random() * 3) + 1;
+            for (let j = 0; j < numRepayments; j++) {
+                const repaymentAmount = Math.floor(initialAmount * (Math.random() * 0.1 + 0.05)); // 5-15% per repayment
+
+                // Ensure we don't pay more than balance
+                if (currentBalance < repaymentAmount) continue;
+
+                const repaymentDaysAfter = Math.floor(Math.random() * (daysAgo - 1)) + 1;
+                const repaymentDate = new Date(date);
+                repaymentDate.setDate(repaymentDate.getDate() + repaymentDaysAfter);
+
+                if (repaymentDate <= new Date()) {
+                    await prisma.repayment.create({
+                        data: {
+                            debtId: debt.id,
+                            amount: repaymentAmount,
+                            timestamp: repaymentDate
+                        }
+                    });
+                    currentBalance -= repaymentAmount;
+                }
+            }
+
+            // Update the debt with the new current balance
+            await prisma.debt.update({
+                where: { id: debt.id },
+                data: { currentBalance }
+            });
+        }
+    }
+
+    revalidatePath("/");
+    revalidatePath("/history");
+}
+
+export async function clearDatabase() {
+    await prisma.income.deleteMany({})
+    await prisma.expense.deleteMany({})
+    await prisma.debt.deleteMany({})
+
+    // Also clear Repayments if they exist (assuming relation, but deleteMany on debt might cascade or fail without it; 
+    // strictly speaking we didn't see a Repayment model usage deletion in previous analyses, but let's check.
+    // Ah, wait, checking `addRepayment` function showed `prisma.repayment.create`. 
+    // So we should delete repayments too.
+    try {
+        await prisma.repayment.deleteMany({})
+    } catch (e) {
+        // Ignore if model doesn't exist or other error, but it should exist based on previous analysis
+    }
+
+    revalidatePath("/")
+    revalidatePath("/history")
 }

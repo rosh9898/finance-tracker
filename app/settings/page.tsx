@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Moon, Sun, Monitor } from "lucide-react"
 
+import { seedDatabase, clearDatabase } from "@/lib/actions"
+
 export default function SettingsPage() {
     const { setTheme, theme } = useTheme()
 
@@ -45,6 +47,33 @@ export default function SettingsPage() {
                             >
                                 <Monitor className="h-4 w-4" />
                             </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Data Management</CardTitle>
+                    <CardDescription>Manage your application data</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium">Demo Data</span>
+                            <form action={seedDatabase}>
+                                <Button variant="outline" type="submit">
+                                    Load Simulated Data
+                                </Button>
+                            </form>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-border pt-4">
+                            <span className="font-medium text-destructive">Danger Zone</span>
+                            <form action={clearDatabase}>
+                                <Button variant="destructive" type="submit">
+                                    Clear All Data
+                                </Button>
+                            </form>
                         </div>
                     </div>
                 </CardContent>

@@ -16,7 +16,7 @@ export default async function EditPage({ params }: { params: { type: string, id:
 
         return (
             <div className="max-w-md mx-auto pt-10">
-                <EditForm transaction={transaction} type={type} id={id} />
+                <EditForm initialData={transaction} type={type} id={id} />
             </div>
         )
     } catch (e) {

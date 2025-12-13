@@ -2,32 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #13151D;
-  --foreground: #ffffff;
+@layer base {
+    :root {
+        /* 
+      NexaFlow Theme
+      Inspiration: Dark, Neon, Cyberpunk/SaaS aesthetics.
+    */
+
+        /* Default to Dark-ish even in light mode for consistency with brand, 
+       but let's define a clean light mode just in case, mapping pinks/purples.
+    */
+        --background: 220 14% 96%;
+        --foreground: 222 47% 11%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 222 47% 11%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 47% 11%;
+
+        --primary: 330 81% 60%;
+        /* Neon Pink #EC4899 */
+        --primary-foreground: 210 40% 98%;
+
+        --secondary: 262 83% 58%;
+        /* Purple #8B5CF6 */
+        --secondary-foreground: 210 40% 98%;
+
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+
+        --accent: 160 84% 39%;
+        /* Emerald Green #10B981 */
+        --accent-foreground: 210 40% 98%;
+
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 330 81% 60%;
+
+        --radius: 1rem;
+        /* More rounded */
+    }
+
+    .dark {
+        /* Deep Navy Background #0F172A (222 47% 11%) */
+        --background: 222 47% 11%;
+        --foreground: 210 40% 98%;
+
+        /* Slightly lighter navy for cards #1E293B (215 28% 17%) */
+        --card: 215 28% 17%;
+        --card-foreground: 210 40% 98%;
+
+        --popover: 215 28% 17%;
+        --popover-foreground: 210 40% 98%;
+
+        --primary: 330 81% 60%;
+        /* Neon Pink */
+        --primary-foreground: 210 40% 98%;
+
+        --secondary: 263 70% 50%;
+        /* Purple */
+        --secondary-foreground: 210 40% 98%;
+
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+
+        --accent: 160 84% 39%;
+        /* Emerald */
+        --accent-foreground: 210 40% 98%;
+
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+
+        --border: 217 33% 20%;
+        --input: 217 33% 20%;
+        --ring: 330 81% 60%;
+    }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-poppins), sans-serif;
-  overflow-x: hidden;
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+/* Custom Gradients */
+.bg-gradient-stats {
+    @apply bg-gradient-to-br from-gray-800 to-black;
+    /* Ideally mimicking the 'Stats' card in image: Dark with a subtle glow or image */
 }
 
-::-webkit-scrollbar-track {
-  background: #13151D;
+.bg-gradient-pink-purple {
+    @apply bg-gradient-to-r from-pink-500 to-purple-600;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #2D3047;
-  border-radius: 3px;
+.glass-card {
+    @apply bg-card/80 backdrop-blur-md border border-white/5 shadow-lg;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #E356FA;
+/* Safe Area Utilities for Mobile */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .pt-safe {
+        padding-top: env(safe-area-inset-top);
+    }
 }

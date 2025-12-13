@@ -149,10 +149,10 @@ export async function getFinancialInsights(summary: string) {
     ${summary}
     
     Provide 3 brief, actionable, bullet-pointed insights or tips. Focus on saving, debt reduction, or spending trends. Keep it friendly and professional.
-    IMPORTANT: The currency is Sri Lankan Rupees (LKR). Always display amounts as "LKR 500" or similar, do NOT use "$".
   `;
 
     try {
+        console.log("Fetching new insights from Gemini...");
         const result = await model.generateContent(prompt);
         const text = result.response.text();
 
@@ -175,34 +175,5 @@ export async function getFinancialInsights(summary: string) {
         // 4. Ultimate Fallback: Random tips
         const randomTip = FALLBACK_TIPS[Math.floor(Math.random() * FALLBACK_TIPS.length)];
         return randomTip + " (AI unavailable momentarily)";
-    }
-}
-
-export async function scanForSubscriptions(historyText: string): Promise<any[]> {
-    if (!apiKey) return [];
-
-    const prompt = `
-    Analyze this list of expense transactions and identify potential recurring subscriptions or bills.
-    History:
-    ${historyText}
-
-    Instructions:
-    - Look for recurring names (e.g., Netflix, Spotify, Internet, Gym, Rent, Insurance).
-    - Look for similar amounts being paid around the same interval (monthly).
-    - Return a JSON array of objects with fields: name, amount, category, frequency (MONTHLY/YEARLY), confidence (HIGH/MEDIUM/LOW).
-    - Ignore one-off expenses like "Food" or "Uber" unless they are subscriptions (e.g. Uber One).
-    
-    Output JSON ONLY.
-    Example: [{"name": "Netflix", "amount": 1500, "category": "Entertainment", "frequency": "MONTHLY", "confidence": "HIGH"}]
-    `;
-
-    try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
-        return JSON.parse(cleanText);
-    } catch (error) {
-        console.error("Gemini Subscription Scan Error:", error);
-        return [];
     }
 }
