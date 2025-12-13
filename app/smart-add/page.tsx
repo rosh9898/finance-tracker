@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { processSmartAdd, addIncome, addExpense, addDebt, addRepayment } from "@/lib/actions"
+import { processSmartAdd, addIncome, addExpense, addDebt, addRepayment, getActiveDebts } from "@/lib/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
@@ -12,6 +12,8 @@ export default function SmartAddPage() {
     const [input, setInput] = useState("")
     const [processing, setProcessing] = useState(false)
     const [result, setResult] = useState<any>(null)
+    const [debts, setDebts] = useState<any[]>([])
+    const [selectedDebtId, setSelectedDebtId] = useState<string>("")
     const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
@@ -44,6 +46,16 @@ export default function SmartAddPage() {
         }
     }
 
+    useEffect(() => {
+        if (result && result.type === 'REPAYMENT') {
+            getActiveDebts().then(data => {
+                setDebts(data)
+                // specific debt selection logic can be improved later to auto-select if AI guesses lender/type
+                if (data.length > 0) setSelectedDebtId(data[0].id)
+            })
+        }
+    }, [result])
+
     async function handleConfirm() {
         if (!result) return
         setProcessing(true)
@@ -63,14 +75,13 @@ export default function SmartAddPage() {
                 formData.append("lender", result.lender || "Unknown")
                 await addDebt(formData)
             } else if (result.type === 'REPAYMENT') {
-                // Repayment needs debtId. For now, AI simple parser might not get debtId unless complex logic.
-                // If ID missing, maybe error or ask user? 
-                // For this turn, let's assume simple repayment isn't fully supported without ID context
-                // Or try to addRepayment and see if backend handles it (it expects debtId)
-                if (result.debtId) {
+                const debtId = result.debtId || selectedDebtId
+                if (debtId) {
+                    formData.append("debtId", debtId)
                     await addRepayment(formData)
                 } else {
-                    toast.error("Repayment requires selecting a specific debt. Feature coming soon.")
+                    if (debts.length === 0) toast.error("No active debts found to repay.")
+                    else toast.error("Please select a debt to repay.")
                     setProcessing(false)
                     return
                 }
@@ -149,6 +160,27 @@ export default function SmartAddPage() {
                                         <span className="text-sm text-muted-foreground">Lender</span>
                                         <span>{result.lender}</span>
                                     </div>
+
+                                )}
+                                {result.type === 'REPAYMENT' && (
+                                    <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
+                                        <label className="text-sm text-muted-foreground">Select Debt to Repay</label>
+                                        {debts.length > 0 ? (
+                                            <select
+                                                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                                                value={selectedDebtId}
+                                                onChange={(e) => setSelectedDebtId(e.target.value)}
+                                            >
+                                                {debts.map(debt => (
+                                                    <option key={debt.id} value={debt.id}>
+                                                        {debt.lender} - {debt.type} (Bal: LKR {debt.currentBalance})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <p className="text-sm text-destructive">No active debts found.</p>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             <div className="flex gap-2">
@@ -161,6 +193,6 @@ export default function SmartAddPage() {
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </div >
     )
 }

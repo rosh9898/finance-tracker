@@ -182,6 +182,14 @@ export async function getHistory() {
     return transactions
 }
 
+export async function getActiveDebts() {
+    return await prisma.debt.findMany({
+        where: { currentBalance: { gt: 0 } },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, lender: true, type: true, currentBalance: true }
+    })
+}
+
 export async function getTransaction(id: string, type: string) {
     const normalizedType = type.toLowerCase()
     if (normalizedType === 'income') {
