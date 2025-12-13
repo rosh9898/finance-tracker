@@ -35,24 +35,24 @@ export default async function Dashboard() {
             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-indigo-100/50 via-background to-background dark:from-indigo-900/40 dark:via-background dark:to-background z-0" />
             <div className="absolute top-[-50%] left-[-20%] w-[500px] h-[500px] bg-pink-500/10 dark:bg-pink-600/20 rounded-full blur-[100px] z-0 pointer-events-none" />
 
-            <div className="relative z-10 p-6 md:p-8 flex flex-col h-full">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-8 w-full">
-                <div className="space-y-1 w-full md:w-auto">
-                  <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase text-[10px]"><div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" /> Balance</div>
-                  <p className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">{formatCurrency(data.totals.balance)}</p>
+            <div className="relative z-10 p-5 md:p-8 flex flex-col h-full">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
+                <div className="space-y-1">
+                  <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase"><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" /> Balance</div>
+                  <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight break-words">{formatCurrency(data.totals.balance)}</p>
                 </div>
-                <div className="space-y-1 w-full md:w-auto">
-                  <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase text-[10px]"><div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]" /> Expenses</div>
-                  <p className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">{formatCurrency(data.totals.expense)}</p>
+                <div className="space-y-1">
+                  <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase"><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]" /> Expenses</div>
+                  <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight break-words">{formatCurrency(data.totals.expense)}</p>
                 </div>
-                <div className="space-y-1 w-full md:w-auto">
-                  <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase text-[10px]"><div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Total Debt</div>
-                  <p className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">{formatCurrency(data.totals.debt)}</p>
+                <div className="space-y-1">
+                  <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase"><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Total Debt</div>
+                  <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight break-words">{formatCurrency(data.totals.debt)}</p>
                 </div>
               </div>
 
               {/* Chart Container within the card */}
-              <div className="relative w-full h-[300px] mt-8">
+              <div className="relative w-full h-[220px] sm:h-[300px] mt-6 md:mt-8">
                 <OverviewChart data={data.chart} />
               </div>
             </div>
