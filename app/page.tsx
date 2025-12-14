@@ -3,11 +3,13 @@ import Link from "next/link"
 import { getDashboardData } from "@/lib/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { ArrowUpIcon, ArrowDownIcon, Bell } from "lucide-react"
+import { ArrowUpIcon, ArrowDownIcon, Bell, TrendingUp, TrendingDown, Wallet } from "lucide-react"
 import { OverviewChart } from "@/components/dashboard/chart"
 import { BreakdownChart } from "@/components/dashboard/breakdown-chart"
 import { Button } from "@/components/ui/button"
 import { MotionDiv, MotionList } from "@/components/ui/motion"
+import { GlassCard } from "@/components/ui/glass-card"
+import { AnimatedCounter } from "@/components/ui/animated-counter"
 
 export default async function Dashboard() {
   const data = await getDashboardData()
@@ -17,89 +19,154 @@ export default async function Dashboard() {
 
       {/* Header */}
       <MotionDiv className="flex items-center justify-between">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-400 dark:from-white dark:via-gray-200 dark:to-gray-500">
-          Dashboard
-        </h1>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tighter gradient-text-animated">
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground">Welcome back! Here's your financial overview.</p>
+        </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-            <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10 transition-all duration-300 icon-bounce pulse-ring text-primary">
+            <Bell className="w-5 h-5" />
           </Button>
         </div>
       </MotionDiv>
 
-      {/* Main Stats Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <MotionDiv className="lg:col-span-3">
-          <div className="relative overflow-hidden rounded-3xl bg-card border border-border dark:border-white/5 shadow-2xl flex flex-col justify-between h-full group">
-            {/* Background Gradient Mesh */}
-            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-indigo-100/50 via-background to-background dark:from-indigo-900/40 dark:via-background dark:to-background z-0" />
-            <div className="absolute top-[-50%] left-[-20%] w-[500px] h-[500px] bg-pink-500/10 dark:bg-pink-600/20 rounded-full blur-[100px] z-0 pointer-events-none" />
-
-            <div className="relative z-10 p-5 md:p-8 flex flex-col h-full">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
-                <div className="space-y-1">
-                  <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase"><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" /> Balance</div>
-                  <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight break-words">{formatCurrency(data.totals.balance)}</p>
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+        <MotionDiv delay={0.1}>
+          <GlassCard variant="premium" glow="blue" className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)] animate-pulse" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Balance</span>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase"><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]" /> Expenses</div>
-                  <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight break-words">{formatCurrency(data.totals.expense)}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 font-medium tracking-wide uppercase"><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Total Debt</div>
-                  <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight break-words">{formatCurrency(data.totals.debt)}</p>
-                </div>
+                <p className="text-2xl md:text-3xl font-bold text-foreground stat-number">
+                  <AnimatedCounter value={data.totals.balance} prefix="LKR " />
+                </p>
               </div>
-
-              {/* Chart Container within the card */}
-              <div className="relative w-full h-[220px] sm:h-[300px] mt-6 md:mt-8">
-                <OverviewChart data={data.chart} />
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center icon-bounce">
+                <Wallet className="w-6 h-6 text-indigo-400" />
               </div>
             </div>
-          </div>
+          </GlassCard>
+        </MotionDiv>
+
+        <MotionDiv delay={0.2}>
+          <GlassCard variant="premium" glow="pink" className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.8)] animate-pulse" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Expenses</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-foreground stat-number">
+                  <AnimatedCounter value={data.totals.expense} prefix="LKR " />
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center icon-bounce">
+                <TrendingDown className="w-6 h-6 text-pink-400" />
+              </div>
+            </div>
+          </GlassCard>
+        </MotionDiv>
+
+        <MotionDiv delay={0.3}>
+          <GlassCard variant="premium" glow="purple" className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-pulse" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Debt</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-foreground stat-number">
+                  <AnimatedCounter value={data.totals.debt} prefix="LKR " />
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center icon-bounce">
+                <TrendingUp className="w-6 h-6 text-amber-400" />
+              </div>
+            </div>
+          </GlassCard>
         </MotionDiv>
       </div>
 
+      {/* Chart Area */}
+      <MotionDiv delay={0.4}>
+        <GlassCard variant="premium" hover={false} className="p-5 md:p-8">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold gradient-text">Financial Overview</h2>
+              <div className="flex gap-2">
+                <span className="text-xs bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full shimmer">30 Days</span>
+              </div>
+            </div>
+            <div className="relative w-full h-[280px] sm:h-[320px]">
+              <OverviewChart data={data.chart} />
+            </div>
+          </div>
+        </GlassCard>
+      </MotionDiv>
+
       {/* Recent Activity / Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <MotionDiv delay={0.2} className="lg:col-span-2">
-          <Card className="rounded-3xl border-border dark:border-white/5 bg-card/40 backdrop-blur-md p-4 md:p-6 h-full transition-colors hover:bg-card/60">
+        <MotionDiv delay={0.5} className="lg:col-span-2">
+          <GlassCard variant="premium" hover={false} className="p-4 md:p-6 h-full">
             <CardHeader className="px-0 pt-0">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Recent Transactions</CardTitle>
+                <CardTitle className="text-xl gradient-text">Recent Transactions</CardTitle>
                 <Link href="/history">
-                  <Button variant="ghost" className="text-xs text-muted-foreground hover:text-foreground transition-colors">View All</Button>
+                  <Button variant="ghost" className="text-xs text-muted-foreground hover:text-primary transition-colors shimmer">
+                    View All →
+                  </Button>
                 </Link>
               </div>
             </CardHeader>
-            <CardContent className="px-0 space-y-4">
-              {data.recent.map((t: any) => (
-                <div key={t.id} className="flex items-center justify-between group p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 cursor-pointer border border-transparent hover:border-black/5 dark:hover:border-white/5">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${t.type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-pink-500/10 text-pink-500'}`}>
-                      {t.type === 'INCOME' ? <ArrowUpIcon className="w-6 h-6" /> : <ArrowDownIcon className="w-6 h-6" />}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-base text-gray-700 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition-colors">{t.category}</p>
-                      <p className="text-xs text-gray-500 font-medium">{new Date(t.date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <div className={`font-bold text-lg tracking-tight ${t.type === 'INCOME' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white transition-colors'}`}>
-                    {t.type === 'INCOME' ? '+' : '-'} {formatCurrency(t.amount)}
-                  </div>
+            <CardContent className="px-0 space-y-3">
+              {data.recent.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No recent transactions</p>
                 </div>
-              ))}
+              ) : (
+                data.recent.map((t: any, index: number) => (
+                  <MotionDiv
+                    key={t.id}
+                    delay={0.6 + index * 0.05}
+                    className="flex items-center justify-between group p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 cursor-pointer border border-white/5 hover:border-white/10 card-shine"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${t.type === 'INCOME'
+                          ? 'bg-emerald-500/20 text-emerald-400 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]'
+                          : 'bg-pink-500/20 text-pink-400 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.3)]'
+                        }`}>
+                        {t.type === 'INCOME' ? <ArrowUpIcon className="w-5 h-5" /> : <ArrowDownIcon className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-base text-foreground group-hover:text-primary transition-colors">{t.category}</p>
+                        <p className="text-xs text-muted-foreground font-medium">{new Date(t.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className={`font-bold text-lg tracking-tight transition-all duration-300 ${t.type === 'INCOME'
+                        ? 'text-emerald-400 text-glow-subtle'
+                        : 'text-foreground group-hover:text-pink-400'
+                      }`}>
+                      {t.type === 'INCOME' ? '+' : '-'} {formatCurrency(t.amount)}
+                    </div>
+                  </MotionDiv>
+                ))
+              )}
             </CardContent>
-          </Card>
+          </GlassCard>
         </MotionDiv>
 
-        <MotionDiv delay={0.3} className="lg:col-span-1">
-          <Card className="rounded-3xl border-border dark:border-white/5 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 p-6 h-full">
+        <MotionDiv delay={0.6} className="lg:col-span-1">
+          <GlassCard variant="gradient-border" hover={false} className="p-6 h-full bg-gradient-to-br from-indigo-900/30 to-purple-900/30">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-xl text-gray-900 dark:text-white">Expense Breakdown</CardTitle>
+              <CardTitle className="text-xl gradient-text">Expense Breakdown</CardTitle>
             </CardHeader>
             <BreakdownChart data={data.breakdown} />
-          </Card>
+          </GlassCard>
         </MotionDiv>
       </div>
     </MotionList>

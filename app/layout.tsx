@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Navigation } from "@/components/navigation"
 import { Toaster } from "@/components/ui/sonner"
 import { SmartAddFab } from "@/components/smart-add-fab"
+import { AnimatedBackground } from "@/components/ui/animated-background"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,10 +47,11 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-background antialiased selection:bg-primary/20`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
+          <AnimatedBackground />
           <div className="relative flex min-h-screen flex-col md:flex-row">
             <Navigation />
             <main className="flex-1 w-full pb-20 md:pb-0">
