@@ -121,6 +121,40 @@ export async function addIncome(formData: FormData) {
     revalidatePath("/")
 }
 
+// Bulk import transactions from bank statement
+export async function bulkAddTransactions(transactions: {
+    type: 'INCOME' | 'EXPENSE',
+    amount: number,
+    category: string,
+    date: string,
+    note: string
+}[]) {
+    for (const t of transactions) {
+        if (t.type === 'INCOME') {
+            await prisma.income.create({
+                data: {
+                    amount: t.amount,
+                    category: t.category,
+                    timestamp: new Date(t.date),
+                    note: t.note
+                }
+            })
+        } else {
+            await prisma.expense.create({
+                data: {
+                    amount: t.amount,
+                    category: t.category,
+                    timestamp: new Date(t.date),
+                    note: t.note
+                }
+            })
+        }
+    }
+    revalidatePath("/")
+    revalidatePath("/history")
+    return { success: true, count: transactions.length }
+}
+
 export async function addExpense(formData: FormData) {
     const amount = parseFloat(formData.get("amount") as string)
     const category = formData.get("category") as string
